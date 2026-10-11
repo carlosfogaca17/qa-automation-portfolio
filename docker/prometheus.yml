@@ -1,0 +1,25 @@
+# Configuração do Prometheus para o portfólio de QA.
+#
+# - Recebe métricas do k6 via Remote Write (endpoint /api/v1/write).
+#   Habilitado no docker-compose com a flag --web.enable-remote-write-receiver.
+# - Faz scrape do exporter de métricas dos testes Playwright (API/Web).
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: qa-portfolio
+
+scrape_configs:
+  # Auto-monitoramento do próprio Prometheus.
+  - job_name: prometheus
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Exporter que converte os relatórios JSON do Playwright em métricas.
+  # Roda como serviço 'test-metrics-exporter' na rede do Compose.
+  - job_name: playwright-tests
+    static_configs:
+      - targets: ['test-metrics-exporter:9101']
+    metrics_path: /metrics
+    scrape_interval: 30s

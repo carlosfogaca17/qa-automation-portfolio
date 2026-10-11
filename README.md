@@ -17,6 +17,7 @@ O objetivo é demonstrar, de forma prática e executável, conhecimentos em auto
 | Database        | PostgreSQL              | [`database/postgresql`](database/postgresql) |
 | Performance     | k6                      | [`performance/k6`](performance/k6) |
 | CI/CD           | GitHub Actions          | [`ci-cd`](ci-cd)               |
+| Observabilidade | Prometheus + Grafana    | [`observability`](observability) |
 | Infra local     | Docker Compose          | [`docker`](docker)             |
 
 Documentação complementar em [`docs/`](docs).
@@ -42,7 +43,13 @@ npm run test:api
 
 # 5. Testes de Performance (k6)
 npm run test:performance
+
+# 6. (Opcional) Observabilidade — Prometheus + Grafana
+npm run observability:up     # sobe a stack; acesse http://localhost:3000 (admin/admin)
 ```
+
+> Detalhes da stack de observabilidade (k6 → Prometheus via Remote Write e
+> Playwright → exporter) em [`docs/architecture/observability.md`](docs/architecture/observability.md).
 
 ---
 
@@ -56,9 +63,10 @@ qa-automation-portfolio/
 ├── database/        # Scripts SQL, seed e queries de teste
 ├── performance/k6/  # Scripts de teste de carga
 ├── ci-cd/           # Pipelines de integração contínua
+├── observability/   # Exporter de métricas dos testes (Prometheus)
 ├── test-data/       # Massa de dados e factories
 ├── reports/         # Relatórios gerados (não versionado)
-└── docker/          # Infraestrutura como código (Docker Compose)
+└── docker/          # Infraestrutura como código (Docker Compose, Prometheus, Grafana)
 ```
 
 ## ✅ Pré-requisitos

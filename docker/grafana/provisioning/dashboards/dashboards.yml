@@ -1,0 +1,14 @@
+# Provider que carrega dashboards JSON automaticamente na inicialização.
+apiVersion: 1
+
+providers:
+  - name: 'QA Portfolio Dashboards'
+    orgId: 1
+    folder: 'QA Portfolio'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards
+      foldersFromFilesStructure: false

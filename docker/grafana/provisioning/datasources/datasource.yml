@@ -1,0 +1,14 @@
+# Provisionamento automático do datasource do Prometheus no Grafana.
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    # 'prometheus' é o nome do serviço na rede do Docker Compose.
+    url: http://prometheus:9090
+    isDefault: true
+    editable: false
+    jsonData:
+      timeInterval: 15s
+      httpMethod: POST

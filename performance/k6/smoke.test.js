@@ -5,6 +5,16 @@ import { Rate } from 'k6/metrics';
 /**
  * Teste de smoke (fumaça) com k6: valida que a API responde sob carga mínima.
  * API alvo: ServeRest (https://serverest.dev).
+ *
+ * ── Observabilidade ────────────────────────────────────────────────────────
+ * Para enviar as métricas deste teste ao Prometheus (e visualizar no Grafana),
+ * execute com a stack de observabilidade no ar (`npm run observability:up`) e:
+ *
+ *   K6_PROMETHEUS_RW_SERVER_URL=http://localhost:9090/api/v1/write \
+ *   K6_PROMETHEUS_RW_TREND_AS_NATIVE_HISTOGRAM=true \
+ *   k6 run --out experimental-prometheus-rw --tag testid=smoke performance/k6/smoke.test.js
+ *
+ * A tag `testid` permite filtrar a execução no dashboard "QA Portfolio — k6 Performance".
  */
 
 // Métrica customizada: taxa de erro das requisições.

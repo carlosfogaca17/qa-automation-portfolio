@@ -10,6 +10,8 @@ Cada decisão é um arquivo Markdown numerado. Use o template abaixo para novas 
 | ADR  | Título                              | Status |
 | ---- | ----------------------------------- | ------ |
 | [0001](0001-monorepo.md) | Uso de monorepo para o portfólio | Aceito |
+| [0002](0002-playwright-web-api.md) | Playwright para Web e API | Aceito |
+| [0003](0003-observability-prometheus-grafana.md) | Observabilidade com Prometheus + Grafana | Aceito |
 
 ## Template
 

@@ -17,6 +17,12 @@
     "test:api": "npm run test --workspace=@qa-portfolio/api",
     "test:api:ui": "npm run test:ui --workspace=@qa-portfolio/api",
     "test:performance": "k6 run performance/k6/smoke.test.js",
+    "test:performance:load": "k6 run performance/k6/load.test.js",
+    "test:performance:observe": "k6 run --out experimental-prometheus-rw performance/k6/smoke.test.js",
+    "observability:up": "docker compose -f docker/docker-compose.yml up -d prometheus grafana test-metrics-exporter",
+    "observability:down": "docker compose -f docker/docker-compose.yml stop prometheus grafana test-metrics-exporter",
+    "observability:logs": "docker compose -f docker/docker-compose.yml logs -f prometheus grafana test-metrics-exporter",
+    "exporter:local": "node observability/exporter/server.js",
     "lint": "npm run lint --workspaces --if-present",
     "format": "prettier --write .",
     "postinstall": "playwright install chromium"
