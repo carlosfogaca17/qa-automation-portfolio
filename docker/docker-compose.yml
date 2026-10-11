@@ -1,0 +1,28 @@
+# Infraestrutura local para o portfólio (Docker Compose).
+# Sobe um PostgreSQL já inicializado com o schema e seed do projeto.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: qa-portfolio-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-qa_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-qa_password}
+      POSTGRES_DB: ${POSTGRES_DB:-qa_portfolio}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      # Scripts executados automaticamente na 1ª inicialização do volume.
+      - ../database/postgresql/schema:/docker-entrypoint-initdb.d/01-schema:ro
+      - ../database/postgresql/seed:/docker-entrypoint-initdb.d/02-seed:ro
+      # Persistência dos dados entre execuções.
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-qa_user} -d ${POSTGRES_DB:-qa_portfolio}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:

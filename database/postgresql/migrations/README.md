@@ -1,0 +1,3 @@
+-- Migrations: controle de versão do schema.
+-- Este arquivo é um marcador; novas migrações devem ser adicionadas aqui
+-- com nomenclatura incremental (ex.: 003-add-index.sql).

@@ -1,0 +1,15 @@
+{
+  "name": "@qa-portfolio/database",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Scripts SQL e validações de banco PostgreSQL para o portfólio",
+  "scripts": {
+    "db:up": "docker compose -f ../../docker/docker-compose.yml up -d",
+    "db:down": "docker compose -f ../../docker/docker-compose.yml down",
+    "db:seed": "docker exec -i qa-portfolio-postgres psql -U qa_user -d qa_portfolio < seed/02-seed.sql",
+    "db:query": "docker exec -i qa-portfolio-postgres psql -U qa_user -d qa_portfolio -c"
+  },
+  "devDependencies": {
+    "pg": "^8.12.0"
+  }
+}

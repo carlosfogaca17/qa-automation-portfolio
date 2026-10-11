@@ -1,0 +1,53 @@
+# Dependencies
+node_modules/
+.pnp/
+.pnp.js
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+playwright/.cache/
+web/playwright/test-results/
+web/playwright/playwright-report/
+api/playwright/test-results/
+api/playwright/playwright-report/
+
+# Reports (gerados em execução)
+reports/*
+!reports/.gitkeep
+
+# Environment variables / secrets
+.env
+.env.local
+.env.*.local
+*.env
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+logs/
+
+# Coverage
+coverage/
+.nyc_output/
+
+# k6
+*.k6out
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# TypeScript
+*.tsbuildinfo
+dist/
+build/

@@ -1,0 +1,37 @@
+{
+  "name": "qa-automation-portfolio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Portfólio de automação de testes: Web, API, Database, Performance e CI/CD",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "workspaces": [
+    "web/playwright",
+    "api/playwright"
+  ],
+  "scripts": {
+    "test:web": "npm run test --workspace=@qa-portfolio/web",
+    "test:web:ui": "npm run test:ui --workspace=@qa-portfolio/web",
+    "test:api": "npm run test --workspace=@qa-portfolio/api",
+    "test:api:ui": "npm run test:ui --workspace=@qa-portfolio/api",
+    "test:performance": "k6 run performance/k6/smoke.test.js",
+    "lint": "npm run lint --workspaces --if-present",
+    "format": "prettier --write .",
+    "postinstall": "playwright install chromium"
+  },
+  "keywords": [
+    "qa",
+    "automation",
+    "playwright",
+    "k6",
+    "postgresql",
+    "testing"
+  ],
+  "devDependencies": {
+    "@playwright/test": "^1.48.0",
+    "prettier": "^3.3.3",
+    "typescript": "^5.6.2"
+  }
+}

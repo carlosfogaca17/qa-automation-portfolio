@@ -1,0 +1,18 @@
+{
+  "name": "@qa-portfolio/web",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Automação Web (UI) com Playwright + TypeScript",
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:headed": "playwright test --headed",
+    "report": "playwright show-report",
+    "lint": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0",
+    "@types/node": "^20.16.0",
+    "typescript": "^5.6.2"
+  }
+}
