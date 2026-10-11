@@ -104,35 +104,61 @@ carregados automaticamente pelo Grafana (via *provisioning*), sem importação m
 | ----------------------- | --------------------------- | -------------------------------------------------------------- |
 | `qa-k6-performance`     | `k6-performance.json`       | VUs, throughput, failure rate, checks, p50/p95/p99, dados      |
 | `qa-tests-execution`    | `test-results.json`         | Total/passou/falhou, taxa de aprovação, distribuição, duração  |
+| `qa-alerts`             | `alerts.json`               | Resumo firing/pending + lista de alertas (Alertmanager/Prometheus) |
 
 Acesso: **http://localhost:3000** (usuário/senha padrão `admin`/`admin`).
 
-## 5. Como usar (passo a passo)
+## 5. API local (alvo do k6)
+
+Os testes de performance rodam contra uma **API local** ([ServeRest](https://serverest.dev))
+em Docker — o próprio projeto ServeRest recomenda que teste de carga **não** rode no
+`serverest.dev` público. O serviço `serverest` (imagem `paulogoncalvesbh/serverest`) sobe na
+porta `3000`:
 
 ```bash
-# 1. Subir a stack de observabilidade
+npm run api:up                       # sobe só a API local (http://localhost:3000)
+npm run test:performance:local       # smoke contra a API local
+npm run test:performance:local:load  # carga contra a API local
+```
+
+O CI (`job performance`) usa a mesma imagem como *service container* em `http://localhost:3000`.
+
+## 6. Como usar (passo a passo)
+
+```bash
+# 1. Subir a stack de observabilidade (Prometheus + Grafana + exporter)
 npm run observability:up
 
-# 2. Rodar as suítes e gerar os relatórios JSON
+# 2. Subir a API local (alvo do k6) — recomendado para teste de carga
+npm run api:up                     # http://localhost:3000
+
+# 3. Rodar as suítes e gerar os relatórios JSON
 npm run test:web      # gera reports/web/results.json
 npm run test:api      # gera reports/api/results.json
 
-# 3. Rodar um teste de carga enviando métricas ao Prometheus
+# 4. Rodar um teste de carga LOCAL enviando métricas ao Prometheus
 K6_PROMETHEUS_RW_SERVER_URL=http://localhost:9090/api/v1/write \
 K6_PROMETHEUS_RW_TREND_AS_NATIVE_HISTOGRAM=true \
-k6 run --out experimental-prometheus-rw --tag testid=smoke performance/k6/smoke.test.js
+API_URL=http://localhost:3000 \
+k6 run --out experimental-prometheus-rw --tag testid=local performance/k6/smoke.test.js
+# (atalho: npm run test:performance:local:observe)
 
-# 4. Abrir o Grafana e inspecionar os dashboards
+# 5. Abrir o Grafana e inspecionar os dashboards (inclusive "QA Portfolio — Alertas")
 #    http://localhost:3000  →  Dashboards → "QA Portfolio"
+
+# (opcional) Notificações por e-mail — requer SMTP no docker/.env
+npm run alerting:up
 
 # (opcional) Rodar o exporter localmente, sem Docker
 npm run exporter:local
 
-# 5. Derrubar a stack
+# 6. Derrubar a stack
 npm run observability:down
+npm run api:down
+npm run alerting:down
 ```
 
-## 6. Alertas (Prometheus)
+## 7. Alertas (Prometheus)
 
 As regras ficam em [`docker/prometheus/alerts.yml`](../../docker/prometheus/alerts.yml) e são
 carregadas via `rule_files` no `prometheus.yml`. Como as métricas de latência são
@@ -147,13 +173,46 @@ carregadas via `rule_files` no `prometheus.yml`. Como as métricas de latência 
 | `QATestsFailing`      | `sum(qa_tests_failed) > 0`                                     | critical   |
 | `QATestExporterDown`  | `up{job="playwright-tests"} == 0` por 1m                        | warning    |
 
-- Visualize em **http://localhost:9090/alerts** (Prometheus) ou crie um painel de
-  alertas no Grafana (tipo *Alert list* / datasource Alertmanager).
-- **Notificação:** a stack atual **não** inclui Alertmanager; os alertas ficam
-  visíveis no Prometheus/Grafana. Para envio a e-mail/Slack, adicione um serviço
-  `alertmanager` e a flag `--alertmanager.config.file` no Prometheus.
+- Visualize em **http://localhost:9090/alerts** (Prometheus) ou no dashboard
+  **`QA Portfolio — Alertas`** no Grafana (painel *Alert list* + tabela via PromQL).
+- O painel *Alert list* usa o datasource **Alertmanager** (provisionado em
+  `docker/grafana/provisioning/datasources/datasource.yml`); a tabela "Estado dos
+  alertas" lê a métrica `ALERTS` direto do Prometheus e funciona **mesmo sem** o
+  Alertmanager no ar.
 
-## 7. Performance no CI
+### 7.1 Notificação por e-mail (Alertmanager)
+
+O **Alertmanager** recebe os alertas do Prometheus (`alerting:` no `prometheus.yml`) e
+envia e-mails via SMTP. Fica em [`docker/alertmanager/alertmanager.yml`](../../docker/alertmanager/alertmanager.yml),
+com todas as credenciais via **variáveis de ambiente** (`${VAR}`), sem dados sensíveis
+versionados.
+
+Sobe somente com o **profile `alerting`** (não interfere no `up` padrão):
+
+```bash
+# 1. Defina as credenciais SMTP no docker/.env (veja docker/.env.example)
+# 2. Suba o Alertmanager
+npm run alerting:up
+#    → Prometheus envia alertas → Alertmanager envia e-mail para $ALERT_EMAIL_TO
+
+npm run alerting:logs   # acompanha
+npm run alerting:down   # para
+```
+
+| Variável            | Descrição                                   | Exemplo (Gmail)        |
+| ------------------- | ------------------------------------------- | ---------------------- |
+| `SMTP_HOST`         | Servidor SMTP                               | `smtp.gmail.com`       |
+| `SMTP_PORT`         | Porta (587 = STARTTLS)                      | `587`                  |
+| `SMTP_FROM`         | Remetente                                   | `voce@gmail.com`       |
+| `SMTP_USERNAME`     | Usuário SMTP                                | `voce@gmail.com`       |
+| `SMTP_PASSWORD`     | Senha / *app password*                      | —                      |
+| `SMTP_REQUIRE_TLS`  | Exigir TLS                                  | `true`                 |
+| `ALERT_EMAIL_TO`    | Destinatário dos alertas                    | `qa-team@example.com` |
+
+> **Gmail:** use uma [App Password](https://support.google.com/accounts/answer/185833)
+> (não a senha da conta). Teste o envio em **http://localhost:9093** (UI do Alertmanager).
+
+## 8. Performance no CI
 
 O workflow [`ci-cd/.github/workflows/ci.yml`](../../ci-cd/.github/workflows/ci.yml) possui
 um job **`performance`** que:
@@ -166,7 +225,7 @@ um job **`performance`** que:
 > O CI valida os SLOs via *thresholds* (sem exigir a stack Prometheus/Grafana).
 > O Remote Write + dashboards é para observabilidade **local** e análise histórica.
 
-## 8. Decisões de projeto
+## 9. Decisões de projeto
 
 - **Native Histograms** no k6: nome de métrica determinístico
   (`k6_http_req_duration_seconds`) e queries `histogram_quantile()` canônicas.
@@ -178,7 +237,7 @@ um job **`performance`** que:
 - **Provisionamento declarativo** (datasource + dashboards via arquivos): a stack
   sobe "pronta", favorecendo reprodutibilidade e Infraestrutura como Código.
 
-## 9. Troubleshooting
+## 10. Troubleshooting
 
 | Sintoma                                  | Causa provável                         | Ação                                                      |
 | ---------------------------------------- | -------------------------------------- | --------------------------------------------------------- |

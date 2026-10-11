@@ -10,6 +10,8 @@ Infraestrutura como código para subir as dependências do portfólio localmente
 | `prometheus`           | `prom/prometheus:v3.0.1`     | 9090  | Métricas do k6 (Remote Write) + scrape do exporter |
 | `grafana`              | `grafana/grafana:11.4.0`     | 3000  | Dashboards provisionados automaticamente           |
 | `test-metrics-exporter`| build local (`observability/exporter`) | 9101 | Relatórios do Playwright → métricas `qa_tests_*` |
+| `serverest`            | `paulogoncalvesbh/serverest` | 3000  | API local (alvo do k6)                             |
+| `alertmanager` (profile `alerting`) | `prom/alertmanager:v0.28.0` | 9093 | Notificações de alerta por e-mail (SMTP) |
 
 Detalhes de coleta e arquitetura em [`docs/architecture/observability.md`](../../docs/architecture/observability.md).
 
@@ -45,12 +47,30 @@ npm run observability:down   # para os serviços
 Após subir, acesse o **Grafana** em http://localhost:3000 (`admin`/`admin`) e o
 **Prometheus** em http://localhost:9090.
 
-### Alertas
+### API local (alvo do k6)
+
+O **ServeRest** sobe em http://localhost:3000 e é o alvo recomendado para os testes
+de carga do k6:
+
+```bash
+npm run api:up                   # sobe só a API local
+npm run test:performance:local   # smoke contra http://localhost:3000
+```
+
+### Alertas e notificação por e-mail
 
 O Prometheus carrega regras de alerta de [`prometheus/alerts.yml`](prometheus/alerts.yml)
-(p95/p99 de latência, taxa de erro, checks e testes falhando). Visualize em
-http://localhost:9090/alerts. A stack atual não inclui Alertmanager (sem notificação
-externa) — veja [`docs/architecture/observability.md`](../../docs/architecture/observability.md).
+(p95/p99 de latência, taxa de erro, checks e testes falhando) — visualize em
+http://localhost:9090/alerts ou no dashboard **"QA Portfolio — Alertas"** no Grafana.
+
+Para **notificação por e-mail**, suba o Alertmanager (profile `alerting`) com as
+credenciais SMTP definidas no `.env`:
+
+```bash
+npm run alerting:up    # requer SMTP_* e ALERT_EMAIL_TO no docker/.env
+```
+
+Detalhes em [`docs/architecture/observability.md`](../../docs/architecture/observability.md).
 
 ## Configuração
 

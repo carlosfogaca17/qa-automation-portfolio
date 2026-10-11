@@ -51,12 +51,26 @@ jobs:
             api/playwright/playwright-report/
           retention-days: 7
 
-  # Job de performance: roda o k6 e usa os thresholds como gate de qualidade.
-  # O job falha se o p95 / taxa de erro excederem os SLOs definidos no script.
+  # Job de performance: roda o k6 contra uma API local (service container) e usa
+  # os thresholds como gate de qualidade. O job falha se o p95 / taxa de erro
+  # excederem os SLOs definidos no script.
   performance:
     name: Performance (k6)
     runs-on: ubuntu-latest
     timeout-minutes: 15
+
+    # API local (ServeRest) usada como alvo do k6 — estável e alinhada ao projeto
+    # (o ServeRest pede que teste de carga NÃO rode no serverest.dev público).
+    services:
+      serverest:
+        image: paulogoncalvesbh/serverest:latest
+        ports:
+          - 3000:3000
+        options: >-
+          --health-cmd "wget -qO- http://localhost:3000/usuarios || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - name: Checkout
@@ -73,14 +87,14 @@ jobs:
         with:
           path: performance/k6/smoke.test.js
         env:
-          API_URL: 'https://serverest.dev'
+          API_URL: 'http://localhost:3000'
 
       # Exporta o resultado completo (JSON) como artefato para análise.
       - name: Run k6 smoke (summary export)
         if: always()
         run: k6 run --summary-export=reports/k6/smoke-summary.json performance/k6/smoke.test.js
         env:
-          API_URL: 'https://serverest.dev'
+          API_URL: 'http://localhost:3000'
         continue-on-error: true
 
       - name: Upload k6 reports

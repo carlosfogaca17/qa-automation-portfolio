@@ -94,7 +94,53 @@ services:
       # Lê (somente) os relatórios gerados pelos testes na raiz do projeto.
       - ../reports:/reports:ro
 
+  # --- API local (alvo do k6) ----------------------------------------------
+
+  # ServeRest: API REST de prática. É o alvo recomendado para o k6 rodar
+  # LOCALMENTE (o projeto ServeRest pede que teste de carga não rode no
+  # serverest.dev público). Acesse em http://localhost:3000.
+  serverest:
+    image: paulogoncalvesbh/serverest:latest
+    container_name: qa-portfolio-serverest
+    restart: unless-stopped
+    ports:
+      - "${SERVEREST_PORT:-3000}:3000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/usuarios || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # --- Notificações (opcional) ---------------------------------------------
+
+  # Alertmanager: recebe os alertas do Prometheus e envia e-mails via SMTP.
+  # Só sobe com o profile 'alerting' para não exigir variáveis SMTP no dia a dia:
+  #   docker compose --profile alerting up -d alertmanager
+  alertmanager:
+    image: prom/alertmanager:v0.28.0
+    container_name: qa-portfolio-alertmanager
+    restart: unless-stopped
+    profiles: ["alerting"]
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+    ports:
+      - "${ALERTMANAGER_PORT:-9093}:9093"
+    volumes:
+      - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - ./alertmanager/template.tmpl:/etc/alertmanager/template.tmpl:ro
+      - alertmanager_data:/alertmanager
+    environment:
+      SMTP_HOST: ${SMTP_HOST:-localhost}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_FROM: ${SMTP_FROM:-alertmanager@example.com}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_REQUIRE_TLS: ${SMTP_REQUIRE_TLS:-true}
+      ALERT_EMAIL_TO: ${ALERT_EMAIL_TO:-qa-team@example.com}
+
 volumes:
   postgres_data:
   prometheus_data:
   grafana_data:
+  alertmanager_data:

@@ -1,0 +1,48 @@
+# Configuração do Alertmanager para o portfólio de QA.
+#
+# Envio de notificações por E-MAIL via SMTP.
+# Todas as credenciais/endereços usam variáveis de ambiente (${VAR}), que são
+# expandidas pelo próprio Alertmanager na leitura do arquivo. Defina-as no
+# arquivo .env (veja docker/.env.example) — nada sensível é versionado.
+#
+# A stack NÃO sobem o Alertmanager por padrão; use o profile 'alerting':
+#   docker compose --profile alerting up -d alertmanager
+
+global:
+  # Servidor SMTP (host:porta). Ex.: smtp.gmail.com:587
+  smtp_smarthost: '${SMTP_HOST:-localhost}:${SMTP_PORT:-587}'
+  smtp_from: '${SMTP_FROM:-alertmanager@example.com}'
+  smtp_auth_username: '${SMTP_USERNAME:-}'
+  smtp_auth_password: '${SMTP_PASSWORD:-}'
+  # Exige TLS (STARTTLS) na conexão SMTP.
+  smtp_require_tls: ${SMTP_REQUIRE_TLS:-true}
+  # Tempo para reenviar um alerta já resolvido.
+  resolve_timeout: 5m
+
+# Templates padrão para assunto/corpo do e-mail.
+templates:
+  - /etc/alertmanager/template.tmpl
+
+# Roteamento: tudo vai para o receiver de e-mail.
+route:
+  group_by: ['alertname', 'category', 'severity']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  receiver: 'email-qa'
+
+receivers:
+  - name: 'email-qa'
+    email_configs:
+      - to: '${ALERT_EMAIL_TO:-qa-team@example.com}'
+        send_resolved: true
+        headers:
+          Subject: '[QA Portfolio] {{ .Status | toUpper }}: {{ .CommonLabels.alertname }}'
+
+# Silencia alertas quando ambos critical e warning do mesmo alertname disparam.
+inhibit_rules:
+  - source_matchers:
+      - severity = critical
+    target_matchers:
+      - severity = warning
+    equal: ['alertname', 'category']

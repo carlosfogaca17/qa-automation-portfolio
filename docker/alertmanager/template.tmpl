@@ -1,0 +1,26 @@
+{{ define "email.default.subject" }}[{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .CommonLabels.alertname }}{{ end }}
+
+{{ define "email.default.html" }}
+<!DOCTYPE html>
+<html>
+<body style="font-family: Arial, sans-serif; color: #24292e;">
+  <h2>QA Automation Portfolio — Alertas</h2>
+  <p>Status geral: <strong>{{ .Status | toUpper }}</strong> {{ if eq .Status "firing" }}<span style="color:#d73a49;">(disparando)</span>{{ else }}<span style="color:#28a745;">(resolvido)</span>{{ end }}</p>
+  <p>Grupo: {{ .CommonLabels.alertname }} — severidade: {{ .CommonLabels.severity }}</p>
+  <hr/>
+  {{ range .Alerts }}
+  <div style="margin: 12px 0; padding: 10px; border-left: 4px solid {{ if eq .Status "firing" }}#d73a49{{ else }}#28a745{{ end }}; background:#f6f8fa;">
+    <strong>{{ .Annotations.summary }}</strong><br/>
+    <span>{{ .Annotations.description }}</span><br/>
+    <small>
+      Estado: {{ .Status }} |
+      Início: {{ .StartsAt }} |
+      {{ if .Labels.testid }}testid: {{ .Labels.testid }}{{ end }}
+    </small>
+  </div>
+  {{ end }}
+  <hr/>
+  <p><small>Prometheus: http://localhost:9090/alerts · Grafana: http://localhost:3000</small></p>
+</body>
+</html>
+{{ end }}

@@ -14,6 +14,13 @@ global:
 rule_files:
   - /etc/prometheus/alerts.yml
 
+# Para onde enviar os alertas disparados. O Alertmanager sobe com o profile
+# 'alerting'; sem ele, o Prometheus apenas acumula os alertas em /alerts.
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ['alertmanager:9093']
+
 scrape_configs:
   # Auto-monitoramento do próprio Prometheus.
   - job_name: prometheus

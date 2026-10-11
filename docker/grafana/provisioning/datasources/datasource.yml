@@ -12,3 +12,18 @@ datasources:
     jsonData:
       timeInterval: 15s
       httpMethod: POST
+
+  # Datasource do Alertmanager — usado pelo painel "Alertas" (tipo Alert list).
+  # Fica vazio/inativo enquanto o serviço 'alertmanager' não estiver no ar
+  # (profile 'alerting'); o painel simplesmente não retorna dados nesse caso.
+  - name: Alertmanager
+    type: alertmanager
+    uid: alertmanager
+    access: proxy
+    url: http://alertmanager:9093
+    isDefault: false
+    editable: false
+    jsonData:
+      implementation: prometheus
+      handleGrafanaManagedAlerts: false
+
