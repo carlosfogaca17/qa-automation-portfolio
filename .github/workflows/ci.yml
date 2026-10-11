@@ -50,3 +50,44 @@ jobs:
             web/playwright/playwright-report/
             api/playwright/playwright-report/
           retention-days: 7
+
+  # Job de performance: roda o k6 e usa os thresholds como gate de qualidade.
+  # O job falha se o p95 / taxa de erro excederem os SLOs definidos no script.
+  performance:
+    name: Performance (k6)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup k6
+        uses: grafana/setup-k6-action@v1
+        with:
+          k6-version: '0.49.0'
+
+      # Smoke: valida saúde e SLOs básicos (p95 < 500ms, erro < 1%).
+      - name: Run k6 smoke test
+        uses: grafana/run-k6-action@v1
+        with:
+          path: performance/k6/smoke.test.js
+        env:
+          API_URL: 'https://serverest.dev'
+
+      # Exporta o resultado completo (JSON) como artefato para análise.
+      - name: Run k6 smoke (summary export)
+        if: always()
+        run: k6 run --summary-export=reports/k6/smoke-summary.json performance/k6/smoke.test.js
+        env:
+          API_URL: 'https://serverest.dev'
+        continue-on-error: true
+
+      - name: Upload k6 reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-reports
+          path: |
+            reports/k6/
+          retention-days: 7

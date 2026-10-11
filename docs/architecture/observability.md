@@ -132,7 +132,41 @@ npm run exporter:local
 npm run observability:down
 ```
 
-## 6. Decisões de projeto
+## 6. Alertas (Prometheus)
+
+As regras ficam em [`docker/prometheus/alerts.yml`](../../docker/prometheus/alerts.yml) e são
+carregadas via `rule_files` no `prometheus.yml`. Como as métricas de latência são
+**Native Histograms**, os percentis usam `histogram_quantile()`.
+
+| Alerta                | Expressão (resumo)                                             | Severidade |
+| --------------------- | -------------------------------------------------------------- | ---------- |
+| `K6HighLatencyP95`    | `histogram_quantile(0.95, …) > 0.5` por 2m                      | warning    |
+| `K6HighLatencyP99`    | `histogram_quantile(0.99, …) > 1` por 2m                        | critical   |
+| `K6HighErrorRate`     | `avg(k6_http_req_failed_rate) > 0.05` por 2m                    | critical   |
+| `K6LowChecksSuccess`  | `avg(k6_checks_rate) < 0.95` por 2m                            | warning    |
+| `QATestsFailing`      | `sum(qa_tests_failed) > 0`                                     | critical   |
+| `QATestExporterDown`  | `up{job="playwright-tests"} == 0` por 1m                        | warning    |
+
+- Visualize em **http://localhost:9090/alerts** (Prometheus) ou crie um painel de
+  alertas no Grafana (tipo *Alert list* / datasource Alertmanager).
+- **Notificação:** a stack atual **não** inclui Alertmanager; os alertas ficam
+  visíveis no Prometheus/Grafana. Para envio a e-mail/Slack, adicione um serviço
+  `alertmanager` e a flag `--alertmanager.config.file` no Prometheus.
+
+## 7. Performance no CI
+
+O workflow [`ci-cd/.github/workflows/ci.yml`](../../ci-cd/.github/workflows/ci.yml) possui
+um job **`performance`** que:
+
+1. Instala o k6 (`grafana/setup-k6-action@v1`).
+2. Executa o **smoke test** com `grafana/run-k6-action@v1` — os *thresholds* do script
+   (`p(95)<500ms`, `rate<0.01`) agem como **gate**: o job falha se os SLOs estourarem.
+3. Exporta um resumo JSON (`--summary-export`) e publica como artefato `k6-reports`.
+
+> O CI valida os SLOs via *thresholds* (sem exigir a stack Prometheus/Grafana).
+> O Remote Write + dashboards é para observabilidade **local** e análise histórica.
+
+## 8. Decisões de projeto
 
 - **Native Histograms** no k6: nome de métrica determinístico
   (`k6_http_req_duration_seconds`) e queries `histogram_quantile()` canônicas.
@@ -144,7 +178,7 @@ npm run observability:down
 - **Provisionamento declarativo** (datasource + dashboards via arquivos): a stack
   sobe "pronta", favorecendo reprodutibilidade e Infraestrutura como Código.
 
-## 7. Troubleshooting
+## 9. Troubleshooting
 
 | Sintoma                                  | Causa provável                         | Ação                                                      |
 | ---------------------------------------- | -------------------------------------- | --------------------------------------------------------- |
@@ -153,4 +187,6 @@ npm run observability:down
 | Métricas `qa_tests_*` zeradas            | Relatório JSON não existe              | Rode `npm run test:web` / `test:api` primeiro             |
 | Exporter não encontra os relatórios      | Caminho/volume incorreto               | Verifique o mount `../reports:/reports` no Compose        |
 | Dashboard não aparece no Grafana         | Provisioning não montado               | Confirme os volumes em `docker/grafana/provisioning`      |
+| Alertas não aparecem em `/alerts`        | `alerts.yml` não montado/parseado      | Confira o mount e a sintaxe em `docker/prometheus/alerts.yml` |
+| Job `performance` falha no CI            | SLO de latência estourado na API alvo  | Ajuste os thresholds ou use uma API mais estável          |
 

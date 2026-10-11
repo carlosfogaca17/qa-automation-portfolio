@@ -45,6 +45,13 @@ npm run observability:down   # para os serviços
 Após subir, acesse o **Grafana** em http://localhost:3000 (`admin`/`admin`) e o
 **Prometheus** em http://localhost:9090.
 
+### Alertas
+
+O Prometheus carrega regras de alerta de [`prometheus/alerts.yml`](prometheus/alerts.yml)
+(p95/p99 de latência, taxa de erro, checks e testes falhando). Visualize em
+http://localhost:9090/alerts. A stack atual não inclui Alertmanager (sem notificação
+externa) — veja [`docs/architecture/observability.md`](../../docs/architecture/observability.md).
+
 ## Configuração
 
 As credenciais possuem valores padrão, mas podem ser sobrescritas criando um

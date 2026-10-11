@@ -10,6 +10,10 @@ global:
   external_labels:
     monitor: qa-portfolio
 
+# Carrega as regras de alerta (p95, error rate, testes falhando, etc.).
+rule_files:
+  - /etc/prometheus/alerts.yml
+
 scrape_configs:
   # Auto-monitoramento do próprio Prometheus.
   - job_name: prometheus

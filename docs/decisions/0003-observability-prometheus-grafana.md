@@ -33,6 +33,8 @@ dashboards em `docker/grafana/`), sem importação manual.
 
 - Visão temporal e histórica de performance (p50/p95/p99, throughput, erros).
 - Acompanhamento agregado dos resultados das suítes (passou/falhou/flaky).
+- Regras de alerta (p95/p99, error rate, checks, testes falhando) prontas.
+- Gate de performance no CI (k6 thresholds) sem exigir a stack de observabilidade.
 - Stack sobe "pronta" via Docker Compose; reprodutível e versionada.
 
 ### Negativas / Trade-offs
@@ -40,6 +42,8 @@ dashboards em `docker/grafana/`), sem importação manual.
 - Native Histograms exigem **Prometheus 3.x** (por isso a imagem é fixada em `v3.0.1`).
 - O exporter depende da existência prévia dos relatórios JSON.
 - O pacote `prom-client` está em transição para `@prometheus-io/client`.
+- **Sem Alertmanager**: os alertas ficam visíveis no Prometheus/Grafana, mas não
+  são notificados externamente (e-mail/Slack). É uma extensão futura explícita.
 
 ### Mitigações
 

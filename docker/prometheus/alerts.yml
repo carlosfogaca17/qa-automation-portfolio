@@ -1,0 +1,80 @@
+# Regras de alerta do Prometheus para o portfólio de QA.
+#
+# Como as métricas de latência do k6 são publicadas como Native Histograms
+# (K6_PROMETHEUS_RW_TREND_AS_NATIVE_HISTOGRAM=true), os percentis são calculados
+# com histogram_quantile() diretamente sobre k6_http_req_duration_seconds.
+#
+# Referenciado em prometheus.yml via `rule_files`.
+
+groups:
+  - name: k6-performance
+    interval: 30s
+    rules:
+      # p95 acima de 500ms por 2 minutos → warning.
+      - alert: K6HighLatencyP95
+        expr: histogram_quantile(0.95, sum(rate(k6_http_req_duration_seconds[5m]))) > 0.5
+        for: 2m
+        labels:
+          severity: warning
+          category: performance
+        annotations:
+          summary: "Latência p95 do k6 acima de 500ms"
+          description: "O p95 de http_req_duration está em {{ $value | humanizeDuration }} (limite: 500ms) nos últimos 5m."
+
+      # p99 acima de 1s por 2 minutos → critical.
+      - alert: K6HighLatencyP99
+        expr: histogram_quantile(0.99, sum(rate(k6_http_req_duration_seconds[5m]))) > 1
+        for: 2m
+        labels:
+          severity: critical
+          category: performance
+        annotations:
+          summary: "Latência p99 do k6 acima de 1s"
+          description: "O p99 de http_req_duration está em {{ $value | humanizeDuration }} (limite: 1s) nos últimos 5m."
+
+      # Taxa de erro HTTP acima de 5% → critical.
+      - alert: K6HighErrorRate
+        expr: avg(k6_http_req_failed_rate) > 0.05
+        for: 2m
+        labels:
+          severity: critical
+          category: reliability
+        annotations:
+          summary: "Taxa de erro HTTP do k6 acima de 5%"
+          description: "http_req_failed_rate médio = {{ $value | humanizePercentage }}."
+
+      # Checks com sucesso abaixo de 95% → warning.
+      - alert: K6LowChecksSuccess
+        expr: avg(k6_checks_rate) < 0.95
+        for: 2m
+        labels:
+          severity: warning
+          category: reliability
+        annotations:
+          summary: "Checks do k6 abaixo de 95% de sucesso"
+          description: "checks_rate médio = {{ $value | humanizePercentage }}."
+
+  - name: playwright-suites
+    interval: 30s
+    rules:
+      # Algum teste funcional falhou na última execução reportada.
+      - alert: QATestsFailing
+        expr: sum(qa_tests_failed) > 0
+        for: 0m
+        labels:
+          severity: critical
+          category: quality
+        annotations:
+          summary: "Há testes falhando ({{ $value }} no total)"
+          description: "Uma ou mais suítes Playwright reportaram testes inesperados. Verifique os relatórios em reports/."
+
+      # Exporter de métricas dos testes fora do ar (sem scrape recente).
+      - alert: QATestExporterDown
+        expr: up{job="playwright-tests"} == 0
+        for: 1m
+        labels:
+          severity: warning
+          category: observability
+        annotations:
+          summary: "Exporter de métricas dos testes indisponível"
+          description: "O target do job 'playwright-tests' está down há mais de 1 minuto."
