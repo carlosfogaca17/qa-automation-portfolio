@@ -9,11 +9,11 @@
 #   docker compose --profile alerting up -d alertmanager
 
 global:
-  # Servidor SMTP (host:porta). Ex.: smtp.gmail.com:587
-  smtp_smarthost: '${SMTP_HOST:-localhost}:${SMTP_PORT:-587}'
+  # Servidor SMTP (host:porta). Ex. Brevo: smtp-relay.brevo.com:587
+  smtp_smarthost: '${SMTP_SERVER:-localhost}:${SMTP_PORT:-587}'
   smtp_from: '${SMTP_FROM:-alertmanager@example.com}'
-  smtp_auth_username: '${SMTP_USERNAME:-}'
-  smtp_auth_password: '${SMTP_PASSWORD:-}'
+  smtp_auth_username: '${SMTP_USER:-}'
+  smtp_auth_password: '${SMTP_PASS:-}'
   # Exige TLS (STARTTLS) na conexão SMTP.
   smtp_require_tls: ${SMTP_REQUIRE_TLS:-true}
   # Tempo para reenviar um alerta já resolvido.
@@ -34,7 +34,7 @@ route:
 receivers:
   - name: 'email-qa'
     email_configs:
-      - to: '${ALERT_EMAIL_TO:-qa-team@example.com}'
+      - to: '${ALERT_RECEIVER_EMAIL:-qa-team@example.com}'
         send_resolved: true
         headers:
           Subject: '[QA Portfolio] {{ .Status | toUpper }}: {{ .CommonLabels.alertname }}'

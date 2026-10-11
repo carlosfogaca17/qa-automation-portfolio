@@ -67,7 +67,7 @@ Para **notificação por e-mail**, suba o Alertmanager (profile `alerting`) com 
 credenciais SMTP definidas no `.env`:
 
 ```bash
-npm run alerting:up    # requer SMTP_* e ALERT_EMAIL_TO no docker/.env
+npm run alerting:up    # requer SMTP_* e ALERT_RECEIVER_EMAIL no docker/.env
 ```
 
 Detalhes em [`docs/architecture/observability.md`](../../docs/architecture/observability.md).

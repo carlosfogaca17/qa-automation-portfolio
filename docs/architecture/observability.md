@@ -193,24 +193,25 @@ Sobe somente com o **profile `alerting`** (não interfere no `up` padrão):
 # 1. Defina as credenciais SMTP no docker/.env (veja docker/.env.example)
 # 2. Suba o Alertmanager
 npm run alerting:up
-#    → Prometheus envia alertas → Alertmanager envia e-mail para $ALERT_EMAIL_TO
+#    → Prometheus envia alertas → Alertmanager envia e-mail para $ALERT_RECEIVER_EMAIL
 
 npm run alerting:logs   # acompanha
 npm run alerting:down   # para
 ```
 
-| Variável            | Descrição                                   | Exemplo (Gmail)        |
-| ------------------- | ------------------------------------------- | ---------------------- |
-| `SMTP_HOST`         | Servidor SMTP                               | `smtp.gmail.com`       |
-| `SMTP_PORT`         | Porta (587 = STARTTLS)                      | `587`                  |
-| `SMTP_FROM`         | Remetente                                   | `voce@gmail.com`       |
-| `SMTP_USERNAME`     | Usuário SMTP                                | `voce@gmail.com`       |
-| `SMTP_PASSWORD`     | Senha / *app password*                      | —                      |
-| `SMTP_REQUIRE_TLS`  | Exigir TLS                                  | `true`                 |
-| `ALERT_EMAIL_TO`    | Destinatário dos alertas                    | `qa-team@example.com` |
+| Variável                | Descrição                          | Exemplo (Brevo)                     |
+| ----------------------- | ---------------------------------- | ----------------------------------- |
+| `SMTP_SERVER`           | Servidor SMTP (relay)              | `smtp-relay.brevo.com`              |
+| `SMTP_PORT`             | Porta (587 = STARTTLS)             | `587`                               |
+| `SMTP_FROM`             | Remetente (deve ser autorizado)    | `alertmanager.bot@gmail.com`        |
+| `SMTP_USER`             | Usuário/login SMTP                  | `bdb001001@smtp-brevo.com`          |
+| `SMTP_PASS`             | Chave SMTP gerada no provedor       | (chave do painel Brevo)             |
+| `SMTP_REQUIRE_TLS`      | Exigir TLS                          | `true`                              |
+| `ALERT_RECEIVER_EMAIL`  | Destinatário dos alertas            | `alertmanager.bot@gmail.com`        |
 
-> **Gmail:** use uma [App Password](https://support.google.com/accounts/answer/185833)
-> (não a senha da conta). Teste o envio em **http://localhost:9093** (UI do Alertmanager).
+> **Brevo:** em `SMTP_PASS` use a **chave SMTP** gerada no painel (não a senha da
+> conta). O `SMTP_FROM` precisa ser um remetente autorizado/verificado no provedor.
+> Teste o envio na UI do Alertmanager em **http://localhost:9093**.
 
 ## 8. Performance no CI
 

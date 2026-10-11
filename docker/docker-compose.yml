@@ -131,13 +131,13 @@ services:
       - ./alertmanager/template.tmpl:/etc/alertmanager/template.tmpl:ro
       - alertmanager_data:/alertmanager
     environment:
-      SMTP_HOST: ${SMTP_HOST:-localhost}
+      SMTP_SERVER: ${SMTP_SERVER:-localhost}
       SMTP_PORT: ${SMTP_PORT:-587}
       SMTP_FROM: ${SMTP_FROM:-alertmanager@example.com}
-      SMTP_USERNAME: ${SMTP_USERNAME:-}
-      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
       SMTP_REQUIRE_TLS: ${SMTP_REQUIRE_TLS:-true}
-      ALERT_EMAIL_TO: ${ALERT_EMAIL_TO:-qa-team@example.com}
+      ALERT_RECEIVER_EMAIL: ${ALERT_RECEIVER_EMAIL:-qa-team@example.com}
 
 volumes:
   postgres_data:
