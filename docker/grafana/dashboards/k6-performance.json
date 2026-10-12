@@ -44,7 +44,7 @@
       }
     ]
   },
-  "time": { "from": "now-15m", "to": "now" },
+  "time": { "from": "now-6h", "to": "now" },
   "timepicker": {},
   "timezone": "browser",
   "title": "QA Portfolio — k6 Performance",
@@ -54,8 +54,70 @@
   "panels": [
     {
       "type": "row",
-      "title": "Visão Geral",
+      "title": "Última Execução (persistente — resumo do k6)",
       "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 99,
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "description": "Resumo da última execução de cada teste (fonte: reports/k6/<testid>.json via exporter). Não some com o tempo.",
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 1 },
+      "id": 200,
+      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false } },
+      "pluginVersion": "10.4.0",
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "Prometheus" }, "editorMode": "code", "expr": "max(k6_last_vus_max{testid=~\"$testid\"})", "legendFormat": "VUs (config)", "range": true, "refId": "A" }
+      ],
+      "title": "VUs (última exec.)",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "unit": "reqps" }, "overrides": [] },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 1 },
+      "id": 201,
+      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false } },
+      "pluginVersion": "10.4.0",
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "Prometheus" }, "editorMode": "code", "expr": "max(k6_last_http_reqs_total{testid=~\"$testid\"})", "legendFormat": "Requisições", "range": true, "refId": "A" }
+      ],
+      "title": "Total de requisições",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "unit": "s", "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 0.5 }, { "color": "red", "value": 1 }] } }, "overrides": [] },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 1 },
+      "id": 202,
+      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false } },
+      "pluginVersion": "10.4.0",
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "Prometheus" }, "editorMode": "code", "expr": "max(k6_last_http_req_duration_p95_seconds{testid=~\"$testid\"})", "legendFormat": "p95", "range": true, "refId": "A" }
+      ],
+      "title": "Latência p95",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "unit": "percentunit", "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 0.02 }, { "color": "red", "value": 0.05 }] } }, "overrides": [] },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 1 },
+      "id": 203,
+      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false } },
+      "pluginVersion": "10.4.0",
+      "targets": [
+        { "datasource": { "type": "prometheus", "uid": "Prometheus" }, "editorMode": "code", "expr": "max(k6_last_http_req_failed_rate{testid=~\"$testid\"})", "legendFormat": "falhas HTTP", "range": true, "refId": "A" },
+        { "datasource": { "type": "prometheus", "uid": "Prometheus" }, "editorMode": "code", "expr": "max(k6_last_checks_rate{testid=~\"$testid\"})", "legendFormat": "sucesso checks", "range": true, "refId": "B" }
+      ],
+      "title": "Taxa de erro / checks",
+      "type": "stat"
+    },
+    {
+      "type": "row",
+      "title": "Visão Geral",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
       "id": 100,
       "collapsed": false,
       "panels": []

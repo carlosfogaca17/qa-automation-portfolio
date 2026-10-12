@@ -35,6 +35,10 @@ services:
       - '--config.file=/etc/prometheus/prometheus.yml'
       # Habilita o receptor de Remote Write usado pelo k6.
       - '--web.enable-remote-write-receiver'
+      # Native histograms: necessário para o k6 publicar trend metrics via
+      # remote-write com K6_PROMETHEUS_RW_TREND_AS_NATIVE_HISTOGRAM=true
+      # (alimenta os alertas e o dashboard de latência p95/p99).
+      - '--enable-feature=native-histograms'
       - '--storage.tsdb.path=/prometheus'
       - '--web.console.libraries=/usr/share/prometheus/console_libraries'
       - '--web.console.templates=/usr/share/prometheus/consoles'
@@ -86,6 +90,7 @@ services:
     environment:
       REPORTS_DIR: /reports
       SUITES: 'web,api'
+      K6_DIR: /reports/k6
       PORT: '9101'
       REFRESH_INTERVAL_MS: '15000'
     ports:

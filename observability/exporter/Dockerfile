@@ -11,6 +11,7 @@ COPY server.js ./
 
 ENV REPORTS_DIR=/reports \
     SUITES=web,api \
+    K6_DIR=/reports/k6 \
     PORT=9101 \
     REFRESH_INTERVAL_MS=15000
 

@@ -17,6 +17,10 @@ api/playwright/playwright-report/
 # Reports (gerados em execução)
 reports/*
 !reports/.gitkeep
+!reports/k6/
+!reports/k6/.gitkeep
+# Resumos do k6 (gerados por k6 run --summary-export)
+reports/k6/*.json
 
 # Environment variables / secrets
 .env

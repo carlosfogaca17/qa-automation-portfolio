@@ -2,7 +2,7 @@
   "name": "@qa-portfolio/test-metrics-exporter",
   "version": "1.0.0",
   "private": true,
-  "description": "Exporter que converte relatórios JSON do Playwright em métricas Prometheus",
+  "description": "Exporter que converte relatórios do Playwright e resumos do k6 em métricas Prometheus",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
